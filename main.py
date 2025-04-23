@@ -5,7 +5,7 @@ import sqlite3
 from datetime import datetime, timedelta
 import os
 import re
-from bill_generator import generate_bill_pdf
+from fixed_bill_generator import generate_bill_pdf
 from utils import convert_to_words
 
 class BillingApp:
