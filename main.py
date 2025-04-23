@@ -13,9 +13,33 @@ class BillingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Billing & Inventory Management System")
-        # Use geometry instead of 'zoomed' state which is Windows-specific
-        self.root.geometry("1200x700")  # Default size
-        self.root.state('normal')  # Normal window state
+        self.root.geometry("1200x700")
+        self.root.state('normal')
+        
+        # Configure custom styles
+        style = ttk.Style()
+        style.configure("TLabel", padding=5, font=('Helvetica', 10))
+        style.configure("TButton", padding=10, font=('Helvetica', 10))
+        style.configure("Accent.TButton", background="#4CAF50", padding=10, font=('Helvetica', 10, 'bold'))
+        style.configure("TEntry", padding=5)
+        style.configure("TFrame", background="#f5f5f5")
+        style.configure("Header.TLabel", font=('Helvetica', 12, 'bold'))
+        style.configure("Total.TLabel", font=('Helvetica', 14, 'bold'))
+        
+        # Configure Treeview
+        style.configure("Treeview",
+            background="#ffffff",
+            fieldbackground="#ffffff",
+            font=('Helvetica', 9)
+        )
+        style.configure("Treeview.Heading", 
+            font=('Helvetica', 10, 'bold'),
+            padding=5
+        )
+        
+        # Configure Notebook tabs
+        style.configure("TNotebook", padding=5)
+        style.configure("TNotebook.Tab", padding=[10, 5], font=('Helvetica', 10))
         
         # Variable to track product being edited
         self.current_editing_product_id = None
@@ -156,8 +180,8 @@ class BillingApp:
         billing_paned.add(right_frame, weight=1)
         
         # Customer Details Frame
-        customer_frame = ttk.LabelFrame(left_frame, text="Customer Details")
-        customer_frame.pack(fill=tk.X, padx=5, pady=5)
+        customer_frame = ttk.LabelFrame(left_frame, text="Customer Details", padding=10)
+        customer_frame.pack(fill=tk.X, padx=10, pady=10)
         
         # Customer Details Grid
         customer_grid = ttk.Frame(customer_frame)
@@ -211,7 +235,7 @@ class BillingApp:
         self.price_display.grid(row=2, column=3, padx=5, pady=5, sticky=tk.W)
         
         # Add Item Button
-        add_button = ttk.Button(item_frame, text="Add Item", command=self.add_item_to_bill)
+        add_button = ttk.Button(item_frame, text="Add Item", command=self.add_item_to_bill, style="Accent.TButton")
         add_button.grid(row=3, column=1, padx=5, pady=10, sticky=tk.W)
         
         # Remove Item Button
@@ -264,7 +288,7 @@ class BillingApp:
         self.tax_label.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
         
         ttk.Label(summary_frame, text="Total:", font=('Arial', 10, 'bold')).grid(row=2, column=0, padx=5, pady=5, sticky=tk.E)
-        self.total_label = ttk.Label(summary_frame, text="₹0.00", width=10, font=('Arial', 10, 'bold'))
+        self.total_label = ttk.Label(summary_frame, text="₹0.00", width=12, style="Total.TLabel")
         self.total_label.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
         
         # Action Buttons
