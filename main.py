@@ -48,6 +48,9 @@ class BillingApp:
         # Status bar
         self.status_bar = ttk.Label(self.root, text="Ready", relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        # Check for low stock items on startup
+        self.check_low_stock_alert()
     
     def init_database(self):
         # Determine if running as executable or script
@@ -1658,6 +1661,26 @@ class BillingApp:
         
         bill_id = self.report_tree.item(selected_items[0], 'values')[0]
         self.print_bill(bill_id)
+
+    def check_low_stock_alert(self):
+        """Check for low stock items and show alert if any found"""
+        self.cursor.execute("""
+            SELECT name, units, total_units 
+            FROM products 
+            WHERE units > 0 AND total_units > 0 
+            AND CAST(units AS FLOAT) / total_units <= 0.25
+        """)
+        low_stock_items = self.cursor.fetchall()
+        
+        if low_stock_items:
+            items_text = "\n".join([
+                f"• {item[0]}: {item[1]} units remaining out of {item[2]}"
+                for item in low_stock_items
+            ])
+            messagebox.showwarning(
+                "Low Stock Alert",
+                f"The following items are running low on stock:\n\n{items_text}"
+            )
 
 def main():
     root = tk.Tk()
