@@ -311,9 +311,32 @@ class BillingApp:
         self.storage_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.storage_tab, text="Inventory")
 
-        # Create a container with scrollbar
-        main_container = ttk.Frame(self.storage_tab)
-        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Create main canvas for scrolling
+        main_canvas = tk.Canvas(self.storage_tab)
+        scrollbar = ttk.Scrollbar(self.storage_tab, orient="vertical", command=main_canvas.yview)
+        main_canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Create main container frame
+        main_container = ttk.Frame(main_canvas)
+        main_container.bind(
+            "<Configure>",
+            lambda e: main_canvas.configure(scrollregion=main_canvas.bbox("all"))
+        )
+
+        # Create window in canvas
+        main_canvas.create_window((0, 0), window=main_container, anchor="nw", width=main_canvas.winfo_width())
+
+        # Configure canvas to expand
+        main_canvas.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        scrollbar.pack(side="right", fill="y")
+
+        # Configure canvas scrolling
+        main_canvas.bind("<Configure>", lambda e: main_canvas.itemconfig(main_canvas.find_all()[0], width=e.width-10))
+        
+        # Bind mouse wheel
+        def _on_mousewheel(event):
+            main_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        main_canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
         # Create top and bottom frames
         top_frame = ttk.Frame(main_container)
