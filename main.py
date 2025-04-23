@@ -1055,6 +1055,8 @@ Features:
 • Low stock alerts
 • Multi-company support
 
+Developer: Yash Dhadve
+
 © 2024 All Rights Reserved
 """
         messagebox.showinfo("About", about_text)
