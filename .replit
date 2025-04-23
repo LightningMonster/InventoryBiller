@@ -1,0 +1,53 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["freetype", "glibcLocales"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "BillingApp"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "main_app"
+
+[[workflows.workflow]]
+name = "BillingApp"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install tkinter tkcalendar reportlab && python main.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "main_app"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[deployment]
+run = ["sh", "-c", "pip install tkinter tkcalendar reportlab && python main.py"]
