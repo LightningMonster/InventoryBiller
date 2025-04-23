@@ -61,17 +61,13 @@ class BillingApp:
             bills_dir = os.path.join(user_data_dir, "bills")
             os.makedirs(bills_dir, exist_ok=True)
             
-            # If database doesn't exist yet, look for a packaged one to copy
-            if not os.path.exists(database_path):
-                app_directory = os.path.dirname(sys.executable)
-                packaged_db = os.path.join(app_directory, "storage.db")
-                if os.path.exists(packaged_db):
-                    try:
-                        import shutil
-                        shutil.copy2(packaged_db, database_path)
-                        print(f"Copied packaged database to {database_path}")
-                    except Exception as e:
-                        print(f"Warning: Could not copy packaged database: {e}")
+            # Always create a fresh database when running as exe
+            self.conn = sqlite3.connect(database_path)
+            self.cursor = self.conn.cursor()
+            
+            # Store the paths
+            self.database_path = database_path
+            self.user_data_dir = user_data_dir
         else:
             # Running in development mode - use local directory
             app_directory = os.path.dirname(os.path.abspath(__file__))
