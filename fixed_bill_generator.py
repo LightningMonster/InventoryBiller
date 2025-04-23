@@ -49,7 +49,7 @@ def generate_bill_pdf(bill_data):
     # Company Header
     company_data = [
         [
-            Paragraph('<img src="generated-icon.png" width="40" height="40"/>', normal_style),
+            Paragraph("", normal_style),
             Paragraph("<b>Company name</b>", normal_style),
             Paragraph("<b>COMPANY DETAILS:</b>", normal_style)
         ],
