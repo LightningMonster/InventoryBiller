@@ -12,7 +12,15 @@ class BillingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Billing & Inventory Management System")
-        self.root.state('zoomed')  # Maximized window
+        # Use geometry instead of 'zoomed' state which is Windows-specific
+        self.root.geometry("1200x700")  # Default size
+        self.root.state('normal')  # Normal window state
+        
+        # Variable to track product being edited
+        self.current_editing_product_id = None
+        
+        # Create a single menubar
+        self.create_menu()
         
         self.total_amount = 0.0
         self.bill_items = []
@@ -353,8 +361,8 @@ class BillingApp:
         btn_frame.grid(row=11, column=0, columnspan=4, pady=10, sticky=tk.EW)
         
         # Save Product Button
-        save_product_button = ttk.Button(btn_frame, text="Save Product", command=self.save_product)
-        save_product_button.pack(side=tk.LEFT, padx=10)
+        self.save_product_button = ttk.Button(btn_frame, text="Save Product", command=self.save_product)
+        self.save_product_button.pack(side=tk.LEFT, padx=10)
         
         # Clear Form Button
         clear_form_button = ttk.Button(btn_frame, text="Clear Form", command=self.clear_product_form)
@@ -745,6 +753,11 @@ class BillingApp:
         self.cgst_spinbox.insert(0, "0.00")
         self.sgst_spinbox.delete(0, tk.END)
         self.sgst_spinbox.insert(0, "0.00")
+        
+        # Reset product editing state
+        self.current_editing_product_id = None
+        self.save_product_button.config(text="Save Product", command=self.save_product)
+        self.status_bar.config(text="Ready")
     
     def refresh_product_list(self):
         # Clear the treeview
@@ -796,6 +809,102 @@ class BillingApp:
             self.inventory_tree.selection_set(item)
             self.tree_menu.post(event.x_root, event.y_root)
     
+    def create_menu(self):
+        # Create the main menu bar
+        menubar = tk.Menu(self.root)
+        
+        # File menu
+        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label="Exit", command=self.root.quit)
+        menubar.add_cascade(label="File", menu=file_menu)
+        
+        # Navigation menu
+        nav_menu = tk.Menu(menubar, tearoff=0)
+        nav_menu.add_command(label="Billing", command=lambda: self.notebook.select(0))
+        nav_menu.add_command(label="Inventory", command=lambda: self.notebook.select(1))
+        nav_menu.add_command(label="Reports", command=lambda: self.notebook.select(2))
+        menubar.add_cascade(label="Navigation", menu=nav_menu)
+        
+        # Help menu
+        help_menu = tk.Menu(menubar, tearoff=0)
+        help_menu.add_command(label="About", command=lambda: messagebox.showinfo("About", "Billing & Inventory Management System\nVersion 1.0"))
+        help_menu.add_command(label="Help", command=lambda: messagebox.showinfo("Help", "Help section coming soon!"))
+        menubar.add_cascade(label="Help", menu=help_menu)
+        
+        # Set the menu for the root window
+        self.root.config(menu=menubar)
+    
+    def update_product(self):
+        """Update an existing product with new information"""
+        if self.current_editing_product_id is None:
+            messagebox.showerror("Error", "No product selected for update.")
+            return
+        
+        # Get company ID
+        company_name = self.company_name_combobox.get()
+        if not company_name:
+            messagebox.showerror("Error", "Please select or add a company.")
+            return
+        
+        self.cursor.execute("SELECT id FROM companies WHERE name = ?", (company_name,))
+        company_result = self.cursor.fetchone()
+        if not company_result:
+            messagebox.showerror("Error", "Company not found. Please save the company first.")
+            return
+        
+        company_id = company_result[0]
+        
+        # Get product details
+        name = self.product_name_entry.get().strip()
+        dom = self.dom_picker.get_date().strftime('%Y-%m-%d')
+        expiry = self.expiry_picker.get_date().strftime('%Y-%m-%d')
+        batch_no = self.batch_no_entry.get().strip()
+        hsn_code = self.hsn_code_entry.get().strip()
+        
+        # Validate required fields
+        if not name or not batch_no or not hsn_code:
+            messagebox.showerror("Error", "Please fill all required fields.")
+            return
+        
+        try:
+            mrp = float(self.mrp_spinbox.get())
+            discount = float(self.discount_spinbox.get())
+            units = int(self.units_spinbox.get())
+            rate = float(self.rate_spinbox.get())
+            taxable_amount = float(self.taxable_amount_spinbox.get())
+            igst = float(self.igst_spinbox.get())
+            cgst = float(self.cgst_spinbox.get())
+            sgst = float(self.sgst_spinbox.get())
+            
+            # Calculate total amount
+            total_amount = taxable_amount + igst
+            
+            # Convert total to words
+            amount_in_words = convert_to_words(total_amount)
+            
+            # Update product in database
+            self.cursor.execute('''
+                UPDATE products 
+                SET name=?, dom=?, expiry=?, batch_no=?, mrp=?, discount=?, 
+                    hsn_code=?, units=?, rate=?, taxable_amount=?, igst=?, 
+                    cgst=?, sgst=?, total_amount=?, amount_in_words=?, 
+                    company_id=?
+                WHERE id=?
+            ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, 
+                 rate, taxable_amount, igst, cgst, sgst, total_amount, 
+                 amount_in_words, company_id, self.current_editing_product_id))
+            
+            self.conn.commit()
+            messagebox.showinfo("Success", "Product updated successfully.")
+            self.clear_product_form()
+            self.refresh_product_list()
+            self.status_bar.config(text=f"Product '{name}' updated successfully")
+            
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numbers for all numeric fields.")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
     def edit_selected_product(self):
         selected_items = self.inventory_tree.selection()
         if not selected_items:
@@ -803,6 +912,9 @@ class BillingApp:
             return
         
         item_id = self.inventory_tree.item(selected_items[0], 'values')[0]
+        
+        # Store the current product ID for update operation
+        self.current_editing_product_id = item_id
         
         self.cursor.execute('''
             SELECT p.*, c.name as company_name FROM products p
@@ -856,6 +968,10 @@ class BillingApp:
         if product[-1]:  # company_name is last column
             self.company_name_combobox.set(product[-1])
             self.company_selected()
+            
+        # Change the Save button to Update mode
+        self.save_product_button.config(text="Update Product", command=self.update_product)
+        self.status_bar.config(text=f"Editing product: {product[1]}")
     
     def delete_selected_product(self):
         selected_items = self.inventory_tree.selection()
@@ -919,7 +1035,9 @@ class BillingApp:
         
         product = self.cursor.fetchone()
         if product:
-            self.hsn_display.config(text=product[1])
+            # Make sure to display the HSN code - fixing the HSN code issue
+            hsn_code = product[1] if product[1] else "N/A"
+            self.hsn_display.config(text=hsn_code)
             self.price_display.config(text=f"₹{product[2]:.2f}")
     
     def add_item_to_bill(self):
