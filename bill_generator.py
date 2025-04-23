@@ -54,134 +54,170 @@ def generate_bill_pdf(bill_data):
     title_style = styles["Heading1"]
     title_style.alignment = 1  # Center alignment
     
-    subtitle_style = styles["Heading2"]
-    subtitle_style.alignment = 1
-    
     normal_style = styles["Normal"]
-    
-    header_style = ParagraphStyle(
-        'HeaderStyle',
-        parent=styles['Heading3'],
-        alignment=0,
-        spaceAfter=6
+    bold_style = ParagraphStyle(
+        'BoldStyle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold'
+    )
+    small_style = ParagraphStyle(
+        'SmallStyle',
+        parent=styles['Normal'],
+        fontSize=8
     )
     
     # Create content elements
     elements = []
     
-    # Add company header
-    elements.append(Paragraph("COMPANY INVOICE", title_style))
-    elements.append(Spacer(1, 0.25*inch))
-    
-    # Invoice information
-    bill_id_text = f"Invoice #: {bill_data['id']}"
-    date_text = f"Date: {bill_data['date']}"
-    
-    # Customer information
-    customer_text = f"Customer Name: {bill_data['customer_name']}"
-    customer_info = [customer_text]
-    
-    if bill_data.get('customer_mobile'):
-        customer_info.append(f"Phone: {bill_data['customer_mobile']}")
-    
-    if bill_data.get('customer_address'):
-        customer_info.append(f"Address: {bill_data['customer_address']}")
-    
-    # Create invoice header table
-    invoice_data = [
-        ["", ""],
-        [Paragraph(bill_id_text, normal_style), ""],
-        [Paragraph(date_text, normal_style), ""],
-        ["", ""],
-        [Paragraph(customer_info[0], normal_style), ""]
+    # Company Header - without image to avoid file not found error
+    company_data = [
+        [
+            Paragraph("○", normal_style),  # Simple circle as placeholder for logo
+            Paragraph("<b>Company name</b>", normal_style),
+            Paragraph("<b>COMPANY DETAILS:</b>", bold_style),
+        ],
+        [
+            "",
+            "",
+            Paragraph("123 Anywhere Street, Any City, ST 12345", small_style)
+        ],
+        [
+            "",
+            "",
+            Paragraph("Phone: 123-456-7890", small_style)
+        ],
+        [
+            "",
+            "",
+            Paragraph("Email: hello@reallygreatsite.com", small_style)
+        ],
+        [
+            "",
+            "",
+            Paragraph("Website: www.reallygreatsite.com", small_style)
+        ]
     ]
     
-    # Add additional customer info if available
-    for i, info in enumerate(customer_info[1:], 5):
-        invoice_data.append([Paragraph(info, normal_style), ""])
-    
-    invoice_table = Table(invoice_data, colWidths=[4*inch, 3*inch])
-    invoice_table.setStyle(TableStyle([
+    # Create company header table
+    company_table = Table(company_data, colWidths=[0.7*inch, 2.5*inch, 3.5*inch])
+    company_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('SPAN', (0, 0), (0, 4)),
+        ('SPAN', (1, 0), (1, 4)),
     ]))
     
-    elements.append(invoice_table)
-    elements.append(Spacer(1, 0.3*inch))
-    
-    # Items table header
-    elements.append(Paragraph("Items:", header_style))
-    
-    items_data = [
-        ["#", "Item", "HSN Code", "Qty", "Rate", "Amount"]
-    ]
-    
-    # Add item rows
-    for i, item in enumerate(bill_data['items'], 1):
-        items_data.append([
-            str(i),
-            item['name'],
-            item['hsn_code'],
-            str(item['quantity']),
-            f"₹{item['rate']:.2f}",
-            f"₹{item['total']:.2f}"
-        ])
-    
-    # Create items table
-    items_table = Table(
-        items_data, 
-        colWidths=[0.3*inch, 3*inch, 1*inch, 0.5*inch, 1*inch, 1*inch]
-    )
-    
-    items_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('ALIGN', (3, 1), (5, -1), 'RIGHT'),
-    ]))
-    
-    elements.append(items_table)
+    elements.append(company_table)
     elements.append(Spacer(1, 0.2*inch))
     
-    # Summary table
+    # Items table - Simplified to match example image
+    # Headers for bill items
+    items_data = [
+        ["Date", "Item Description", "Price", "Qty", "Total"]
+    ]
+    
+    # Create 15 empty rows for the table
+    for _ in range(15):
+        items_data.append(["", "", "", "", ""])
+    
+    # Create the table with widths matching the example image
+    col_widths = [0.8*inch, 3.2*inch, 0.8*inch, 0.6*inch, 1.0*inch]
+    items_table = Table(items_data, colWidths=col_widths, repeatRows=1)
+    
+    # Apply table styles to match example
+    table_style = [
+        # Grid borders for all cells
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        # Header style - no background color in the example
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        # Cell alignment
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]
+    
+    items_table.setStyle(TableStyle(table_style))
+    elements.append(items_table)
+    
+    # Summary table (right-aligned) - Match exact format from screenshot
+    subtotal = bill_data.get('subtotal', 100.00)
+    discount = bill_data.get('discount', 30.00)
+    tax = bill_data.get('tax', 5.00)
+    total = bill_data.get('total', 75.00)
+    
+    # Format values to match screenshot (positive numbers with currency symbol)
     summary_data = [
-        ["Subtotal:", f"₹{bill_data['subtotal']:.2f}"],
-        ["Tax (18%):", f"₹{bill_data['tax']:.2f}"],
-        ["Total:", f"₹{bill_data['total']:.2f}"]
+        ["Subtotal", f"${subtotal:.2f}"],
+        [f"Discount ({int(discount)}% Off)", f"(-${discount:.2f})"],
+        ["Sales Tax (5%)", f"${tax:.2f}"],
+        ["Total", f"${total:.2f}"]
     ]
     
     summary_table = Table(
         summary_data,
-        colWidths=[5.8*inch, 1*inch]
+        colWidths=[1.5*inch, 0.8*inch]
     )
     
     summary_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
         ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
         ('FONTNAME', (0, -1), (1, -1), 'Helvetica-Bold'),
         ('LINEABOVE', (0, -1), (1, -1), 1, colors.black),
         ('LINEBELOW', (0, -1), (1, -1), 1, colors.black),
     ]))
     
-    elements.append(summary_table)
+    # Payment terms section (left) and summary (right) - Exactly match screenshot
+    payment_data = [
+        [Paragraph("<b>PAYMENT TERMS:</b>", bold_style), "", summary_data[0][0], summary_data[0][1]],
+        [Paragraph("123-456-7890", small_style), "", summary_data[1][0], summary_data[1][1]],
+        [Paragraph("Lorem Beauty & Spa", small_style), "", summary_data[2][0], summary_data[2][1]],
+        [Paragraph("Lorem ipsum", small_style), "", summary_data[3][0], summary_data[3][1]]
+    ]
     
-    # Footer note
-    elements.append(Spacer(1, 0.3*inch))
-    footer_text = "Thank you for your business!"
-    elements.append(Paragraph(footer_text, styles["Italic"]))
+    payment_table = Table(
+        payment_data,
+        colWidths=[2*inch, 2.4*inch, 1.5*inch, 0.8*inch]
+    )
     
-    # Terms and conditions
+    payment_table.setStyle(TableStyle([
+        ('ALIGN', (2, 0), (2, -1), 'LEFT'),
+        ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+        ('FONTNAME', (2, -1), (3, -1), 'Helvetica-Bold'),
+        ('LINEABOVE', (2, -1), (3, -1), 1, colors.black),
+        ('LINEBELOW', (2, -1), (3, -1), 1, colors.black),
+        ('SPAN', (0, 0), (1, 0)),
+        ('SPAN', (0, 1), (1, 1)),
+        ('SPAN', (0, 2), (1, 2)),
+        ('SPAN', (0, 3), (1, 3)),
+    ]))
+    
     elements.append(Spacer(1, 0.2*inch))
-    terms_text = """
-    Terms & Conditions:
-    1. Goods once sold cannot be returned.
-    2. Payment due within 30 days.
-    3. All disputes are subject to local jurisdiction.
-    """
-    elements.append(Paragraph(terms_text, styles["Normal"]))
+    elements.append(payment_table)
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Signature section - Match exactly with screenshot layout
+    signature_data = [
+        [Paragraph("<b>COMPANY NAME:</b>", bold_style), "", Paragraph("<b>TRANSPORTER'S NAME:</b>", bold_style), ""],
+        [Paragraph("<b>AUTHORISED SIGNATORY:</b>", bold_style), "", "", ""],
+        [Paragraph("<b>SIGNATURE</b>", bold_style), "", Paragraph("<b>RECEIVER'S STAMP & SIGN:</b>", bold_style), ""]
+    ]
+    
+    signature_table = Table(
+        signature_data,
+        colWidths=[1.7*inch, 1.5*inch, 1.7*inch, 1.8*inch]
+    )
+    
+    signature_table.setStyle(TableStyle([
+        ('SPAN', (0, 0), (1, 0)),
+        ('SPAN', (2, 0), (3, 0)),
+        ('SPAN', (0, 1), (1, 1)),
+        ('SPAN', (2, 1), (3, 1)),
+        ('SPAN', (0, 2), (1, 2)),
+        ('SPAN', (2, 2), (3, 2)),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+    
+    elements.append(signature_table)
     
     # Build the PDF
     doc.build(elements)

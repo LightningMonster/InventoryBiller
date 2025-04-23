@@ -825,6 +825,12 @@ class BillingApp:
         nav_menu.add_command(label="Reports", command=lambda: self.notebook.select(2))
         menubar.add_cascade(label="Navigation", menu=nav_menu)
         
+        # Bills menu - new menu for bill management
+        bills_menu = tk.Menu(menubar, tearoff=0)
+        bills_menu.add_command(label="Open Bills Folder", command=self.open_bills_folder)
+        bills_menu.add_command(label="View Last Bill", command=self.view_last_bill)
+        menubar.add_cascade(label="Bills", menu=bills_menu)
+        
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
         help_menu.add_command(label="About", command=lambda: messagebox.showinfo("About", "Billing & Inventory Management System\nVersion 1.0"))
@@ -833,6 +839,54 @@ class BillingApp:
         
         # Set the menu for the root window
         self.root.config(menu=menubar)
+        
+    def open_bills_folder(self):
+        """Open the folder containing generated bills"""
+        bills_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bills")
+        # Create the directory if it doesn't exist
+        if not os.path.exists(bills_dir):
+            os.makedirs(bills_dir)
+            
+        try:
+            # Different commands based on OS
+            if os.name == 'nt':  # For Windows
+                os.startfile(bills_dir)
+            elif os.name == 'posix':  # For macOS and Linux
+                import subprocess
+                subprocess.Popen(['xdg-open', bills_dir])
+            self.status_bar.config(text=f"Opened bills folder: {bills_dir}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not open bills folder: {str(e)}")
+    
+    def view_last_bill(self):
+        """View the most recently generated bill"""
+        bills_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bills")
+        if not os.path.exists(bills_dir):
+            messagebox.showinfo("Info", "No bills have been generated yet.")
+            return
+            
+        # Get list of PDF files in the bills directory
+        bill_files = [f for f in os.listdir(bills_dir) if f.lower().endswith('.pdf')]
+        
+        if not bill_files:
+            messagebox.showinfo("Info", "No bills have been generated yet.")
+            return
+            
+        # Sort by modification time (newest first)
+        bill_files.sort(key=lambda x: os.path.getmtime(os.path.join(bills_dir, x)), reverse=True)
+        
+        # Open the most recent bill
+        latest_bill = os.path.join(bills_dir, bill_files[0])
+        try:
+            # Different commands based on OS
+            if os.name == 'nt':  # For Windows
+                os.startfile(latest_bill)
+            elif os.name == 'posix':  # For macOS and Linux
+                import subprocess
+                subprocess.Popen(['xdg-open', latest_bill])
+            self.status_bar.config(text=f"Opened latest bill: {bill_files[0]}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not open bill: {str(e)}")
     
     def update_product(self):
         """Update an existing product with new information"""

@@ -14,30 +14,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "BillingApp"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "main_app"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "billing_app"
 
-[[workflows.workflow]]
-name = "BillingApp"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
 [[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pip install tkinter tkcalendar reportlab && python main.py"
-waitForPort = 5000
+task = "workflow.run"
+args = "BillingApp"
 
 [[workflows.workflow]]
 name = "main_app"
@@ -55,6 +40,20 @@ args = "python main.py"
 
 [[workflows.workflow]]
 name = "billing_app"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[[workflows.workflow]]
+name = "BillingApp"
 author = "agent"
 
 [workflows.workflow.metadata]
