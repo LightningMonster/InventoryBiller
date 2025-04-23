@@ -71,6 +71,7 @@ class BillingApp:
                 discount REAL NOT NULL,
                 hsn_code TEXT NOT NULL,
                 units INTEGER NOT NULL,
+                total_units INTEGER NOT NULL,
                 rate REAL NOT NULL,
                 taxable_amount REAL NOT NULL,
                 igst REAL NOT NULL,
@@ -324,41 +325,45 @@ class BillingApp:
         self.units_spinbox = ttk.Spinbox(grid_frame, from_=0, to=10000, increment=1, width=10)
         self.units_spinbox.grid(row=6, column=3, padx=5, pady=5, sticky=tk.W)
         
-        ttk.Label(grid_frame, text="MRP*:").grid(row=7, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(grid_frame, text="Total Units*:").grid(row=7, column=0, padx=5, pady=5, sticky=tk.W)
+        self.total_units_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=1, width=10)
+        self.total_units_spinbox.grid(row=7, column=1, padx=5, pady=5, sticky=tk.W)
+        
+        ttk.Label(grid_frame, text="MRP*:").grid(row=8, column=0, padx=5, pady=5, sticky=tk.W)
         self.mrp_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=0.01, format="%.2f", width=12)
-        self.mrp_spinbox.grid(row=7, column=1, padx=5, pady=5, sticky=tk.W)
+        self.mrp_spinbox.grid(row=8, column=1, padx=5, pady=5, sticky=tk.W)
         
-        ttk.Label(grid_frame, text="Discount (%)*:").grid(row=7, column=2, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(grid_frame, text="Discount (%)*:").grid(row=8, column=2, padx=5, pady=5, sticky=tk.W)
         self.discount_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
-        self.discount_spinbox.grid(row=7, column=3, padx=5, pady=5, sticky=tk.W)
+        self.discount_spinbox.grid(row=8, column=3, padx=5, pady=5, sticky=tk.W)
         
-        ttk.Label(grid_frame, text="Rate*:").grid(row=8, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(grid_frame, text="Rate*:").grid(row=9, column=0, padx=5, pady=5, sticky=tk.W)
         self.rate_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=0.01, format="%.2f", width=12)
-        self.rate_spinbox.grid(row=8, column=1, padx=5, pady=5, sticky=tk.W)
+        self.rate_spinbox.grid(row=9, column=1, padx=5, pady=5, sticky=tk.W)
         
-        ttk.Label(grid_frame, text="Taxable Amount*:").grid(row=8, column=2, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(grid_frame, text="Taxable Amount*:").grid(row=9, column=2, padx=5, pady=5, sticky=tk.W)
         self.taxable_amount_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=0.01, format="%.2f", width=12)
-        self.taxable_amount_spinbox.grid(row=8, column=3, padx=5, pady=5, sticky=tk.W)
+        self.taxable_amount_spinbox.grid(row=9, column=3, padx=5, pady=5, sticky=tk.W)
         
-        ttk.Label(grid_frame, text="IGST*:").grid(row=9, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(grid_frame, text="IGST*:").grid(row=10, column=0, padx=5, pady=5, sticky=tk.W)
         self.igst_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
-        self.igst_spinbox.grid(row=9, column=1, padx=5, pady=5, sticky=tk.W)
+        self.igst_spinbox.grid(row=10, column=1, padx=5, pady=5, sticky=tk.W)
         
-        ttk.Label(grid_frame, text="CGST*:").grid(row=9, column=2, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(grid_frame, text="CGST*:").grid(row=10, column=2, padx=5, pady=5, sticky=tk.W)
         self.cgst_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
-        self.cgst_spinbox.grid(row=9, column=3, padx=5, pady=5, sticky=tk.W)
+        self.cgst_spinbox.grid(row=10, column=3, padx=5, pady=5, sticky=tk.W)
         
-        ttk.Label(grid_frame, text="SGST*:").grid(row=10, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(grid_frame, text="SGST*:").grid(row=11, column=0, padx=5, pady=5, sticky=tk.W)
         self.sgst_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
-        self.sgst_spinbox.grid(row=10, column=1, padx=5, pady=5, sticky=tk.W)
+        self.sgst_spinbox.grid(row=11, column=1, padx=5, pady=5, sticky=tk.W)
         
         # Calculate button
         calculate_btn = ttk.Button(grid_frame, text="Calculate Amounts", command=self.calculate_product_amounts)
-        calculate_btn.grid(row=10, column=2, columnspan=2, padx=5, pady=5, sticky=tk.W)
+        calculate_btn.grid(row=11, column=2, columnspan=2, padx=5, pady=5, sticky=tk.W)
         
         # Button Frame
         btn_frame = ttk.Frame(grid_frame)
-        btn_frame.grid(row=11, column=0, columnspan=4, pady=10, sticky=tk.EW)
+        btn_frame.grid(row=12, column=0, columnspan=4, pady=10, sticky=tk.EW)
         
         # Save Product Button
         self.save_product_button = ttk.Button(btn_frame, text="Save Product", command=self.save_product)
@@ -699,6 +704,7 @@ class BillingApp:
             mrp = float(self.mrp_spinbox.get())
             discount = float(self.discount_spinbox.get())
             units = int(self.units_spinbox.get())
+            total_units = int(self.total_units_spinbox.get()) # Get total units
             rate = float(self.rate_spinbox.get())
             taxable_amount = float(self.taxable_amount_spinbox.get())
             igst = float(self.igst_spinbox.get())
@@ -711,14 +717,43 @@ class BillingApp:
             # Convert total to words
             amount_in_words = convert_to_words(total_amount)
             
-            # Insert product into database
-            self.cursor.execute('''
-                INSERT INTO products (name, dom, expiry, batch_no, mrp, discount, hsn_code, 
-                                     units, rate, taxable_amount, igst, cgst, sgst, 
-                                     total_amount, amount_in_words, company_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, rate, taxable_amount, 
-                  igst, cgst, sgst, total_amount, amount_in_words, company_id))
+            # Check if total_units column exists
+            self.cursor.execute("PRAGMA table_info(products)")
+            columns = [column[1] for column in self.cursor.fetchall()]
+            
+            # Insert product with or without total_units based on schema
+            if 'total_units' in columns:
+                # Insert with total_units
+                self.cursor.execute('''
+                    INSERT INTO products (name, dom, expiry, batch_no, mrp, discount, hsn_code, 
+                                         units, total_units, rate, taxable_amount, igst, cgst, sgst, 
+                                         total_amount, amount_in_words, company_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, total_units, rate, taxable_amount, 
+                      igst, cgst, sgst, total_amount, amount_in_words, company_id))
+            else:
+                # Insert without total_units (backward compatibility)
+                # First, try to add the column if it doesn't exist
+                try:
+                    self.cursor.execute("ALTER TABLE products ADD COLUMN total_units INTEGER DEFAULT 0")
+                    self.conn.commit()
+                    # Now the column exists, so use the version with total_units
+                    self.cursor.execute('''
+                        INSERT INTO products (name, dom, expiry, batch_no, mrp, discount, hsn_code, 
+                                             units, total_units, rate, taxable_amount, igst, cgst, sgst, 
+                                             total_amount, amount_in_words, company_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, total_units, rate, taxable_amount, 
+                          igst, cgst, sgst, total_amount, amount_in_words, company_id))
+                except sqlite3.OperationalError:
+                    # If we can't add the column, use the old schema without total_units
+                    self.cursor.execute('''
+                        INSERT INTO products (name, dom, expiry, batch_no, mrp, discount, hsn_code, 
+                                             units, rate, taxable_amount, igst, cgst, sgst, 
+                                             total_amount, amount_in_words, company_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, rate, taxable_amount, 
+                          igst, cgst, sgst, total_amount, amount_in_words, company_id))
             
             self.conn.commit()
             messagebox.showinfo("Success", "Product saved successfully.")
@@ -743,6 +778,8 @@ class BillingApp:
         self.discount_spinbox.insert(0, "0.00")
         self.units_spinbox.delete(0, tk.END)
         self.units_spinbox.insert(0, "0")
+        self.total_units_spinbox.delete(0, tk.END)
+        self.total_units_spinbox.insert(0, "0")
         self.rate_spinbox.delete(0, tk.END)
         self.rate_spinbox.insert(0, "0.00")
         self.taxable_amount_spinbox.delete(0, tk.END)
@@ -764,18 +801,63 @@ class BillingApp:
         for item in self.inventory_tree.get_children():
             self.inventory_tree.delete(item)
         
-        # Get products with company names
-        self.cursor.execute('''
-            SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate
-            FROM products p
-            LEFT JOIN companies c ON p.company_id = c.id
-            ORDER BY p.name
-        ''')
+        # Check if total_units column exists
+        self.cursor.execute("PRAGMA table_info(products)")
+        columns = [column[1] for column in self.cursor.fetchall()]
+        
+        # Use appropriate query based on whether total_units exists
+        if 'total_units' in columns:
+            # Get products with company names and total_units
+            self.cursor.execute('''
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate, p.total_units
+                FROM products p
+                LEFT JOIN companies c ON p.company_id = c.id
+                ORDER BY p.name
+            ''')
+        else:
+            # Get products without total_units (for backward compatibility)
+            self.cursor.execute('''
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate
+                FROM products p
+                LEFT JOIN companies c ON p.company_id = c.id
+                ORDER BY p.name
+            ''')
         
         products = self.cursor.fetchall()
         
         for product in products:
-            self.inventory_tree.insert('', 'end', values=product)
+            # Check if it's a low stock item (less than 25% of total)
+            units = product[6]  # Current units
+            
+            # If total_units column exists, use it, otherwise use current units
+            if 'total_units' in columns and len(product) > 9:
+                total_units = product[9] if product[9] else units  # Total units or current if total not set
+            else:
+                total_units = units  # Just use current units as total if column doesn't exist
+            
+            # Calculate if low stock (less than 25% of total)
+            is_low_stock = False
+            if total_units > 0:
+                percentage = (units / total_units) * 100
+                is_low_stock = percentage < 25
+                
+            # Change color for low stock items
+            tag = 'low_stock' if is_low_stock else ''
+            
+            # If we have total_units, exclude it from display values
+            if 'total_units' in columns and len(product) > 9:
+                display_values = product[:-1]
+            else:
+                display_values = product
+                
+            item_id = self.inventory_tree.insert('', 'end', values=display_values, tags=(tag,))
+            
+            # If low stock, add a note in the status column
+            if is_low_stock:
+                self.inventory_tree.item(item_id, text="⚠️ Low Stock")
+        
+        # Configure the tag for low stock items
+        self.inventory_tree.tag_configure('low_stock', background='#ffcccc')
     
     def search_products(self):
         search_term = self.search_entry.get().strip()
@@ -787,19 +869,65 @@ class BillingApp:
         for item in self.inventory_tree.get_children():
             self.inventory_tree.delete(item)
         
-        # Search by name, HSN code, or batch number
-        self.cursor.execute('''
-            SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate
-            FROM products p
-            LEFT JOIN companies c ON p.company_id = c.id
-            WHERE p.name LIKE ? OR p.hsn_code LIKE ? OR p.batch_no LIKE ?
-            ORDER BY p.name
-        ''', (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%'))
+        # Check if total_units column exists
+        self.cursor.execute("PRAGMA table_info(products)")
+        columns = [column[1] for column in self.cursor.fetchall()]
+        
+        # Use appropriate query based on whether total_units exists
+        if 'total_units' in columns:
+            # Search by name, HSN code, or batch number with total_units
+            self.cursor.execute('''
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate, p.total_units
+                FROM products p
+                LEFT JOIN companies c ON p.company_id = c.id
+                WHERE p.name LIKE ? OR p.hsn_code LIKE ? OR p.batch_no LIKE ?
+                ORDER BY p.name
+            ''', (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%'))
+        else:
+            # Search without total_units (for backward compatibility)
+            self.cursor.execute('''
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate
+                FROM products p
+                LEFT JOIN companies c ON p.company_id = c.id
+                WHERE p.name LIKE ? OR p.hsn_code LIKE ? OR p.batch_no LIKE ?
+                ORDER BY p.name
+            ''', (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%'))
         
         products = self.cursor.fetchall()
         
         for product in products:
-            self.inventory_tree.insert('', 'end', values=product)
+            # Check if it's a low stock item (less than 25% of total)
+            units = product[6]  # Current units
+            
+            # If total_units column exists, use it, otherwise use current units
+            if 'total_units' in columns and len(product) > 9:
+                total_units = product[9] if product[9] else units  # Total units or current if total not set
+            else:
+                total_units = units  # Just use current units as total if column doesn't exist
+            
+            # Calculate if low stock (less than 25% of total)
+            is_low_stock = False
+            if total_units > 0:
+                percentage = (units / total_units) * 100
+                is_low_stock = percentage < 25
+                
+            # Change color for low stock items
+            tag = 'low_stock' if is_low_stock else ''
+            
+            # If we have total_units, exclude it from display values
+            if 'total_units' in columns and len(product) > 9:
+                display_values = product[:-1]
+            else:
+                display_values = product
+                
+            item_id = self.inventory_tree.insert('', 'end', values=display_values, tags=(tag,))
+            
+            # If low stock, add a note in the status column
+            if is_low_stock:
+                self.inventory_tree.item(item_id, text="⚠️ Low Stock")
+        
+        # Configure the tag for low stock items
+        self.inventory_tree.tag_configure('low_stock', background='#ffcccc')
         
         self.status_bar.config(text=f"Found {len(products)} matching products")
     
@@ -924,6 +1052,7 @@ class BillingApp:
             mrp = float(self.mrp_spinbox.get())
             discount = float(self.discount_spinbox.get())
             units = int(self.units_spinbox.get())
+            total_units = int(self.total_units_spinbox.get()) # Get total units
             rate = float(self.rate_spinbox.get())
             taxable_amount = float(self.taxable_amount_spinbox.get())
             igst = float(self.igst_spinbox.get())
@@ -936,17 +1065,52 @@ class BillingApp:
             # Convert total to words
             amount_in_words = convert_to_words(total_amount)
             
-            # Update product in database
-            self.cursor.execute('''
-                UPDATE products 
-                SET name=?, dom=?, expiry=?, batch_no=?, mrp=?, discount=?, 
-                    hsn_code=?, units=?, rate=?, taxable_amount=?, igst=?, 
-                    cgst=?, sgst=?, total_amount=?, amount_in_words=?, 
-                    company_id=?
-                WHERE id=?
-            ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, 
-                 rate, taxable_amount, igst, cgst, sgst, total_amount, 
-                 amount_in_words, company_id, self.current_editing_product_id))
+            # Check if total_units column exists
+            self.cursor.execute("PRAGMA table_info(products)")
+            columns = [column[1] for column in self.cursor.fetchall()]
+            
+            # Update product with or without total_units based on schema
+            if 'total_units' in columns:
+                # Update with total_units
+                self.cursor.execute('''
+                    UPDATE products 
+                    SET name=?, dom=?, expiry=?, batch_no=?, mrp=?, discount=?, 
+                        hsn_code=?, units=?, total_units=?, rate=?, taxable_amount=?, igst=?, 
+                        cgst=?, sgst=?, total_amount=?, amount_in_words=?, 
+                        company_id=?
+                    WHERE id=?
+                ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, total_units,
+                     rate, taxable_amount, igst, cgst, sgst, total_amount, 
+                     amount_in_words, company_id, self.current_editing_product_id))
+            else:
+                # Update without total_units (backward compatibility)
+                # First, try to add the column if it doesn't exist
+                try:
+                    self.cursor.execute("ALTER TABLE products ADD COLUMN total_units INTEGER DEFAULT 0")
+                    self.conn.commit()
+                    # Now the column exists, so use the version with total_units
+                    self.cursor.execute('''
+                        UPDATE products 
+                        SET name=?, dom=?, expiry=?, batch_no=?, mrp=?, discount=?, 
+                            hsn_code=?, units=?, total_units=?, rate=?, taxable_amount=?, igst=?, 
+                            cgst=?, sgst=?, total_amount=?, amount_in_words=?, 
+                            company_id=?
+                        WHERE id=?
+                    ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units, total_units,
+                         rate, taxable_amount, igst, cgst, sgst, total_amount, 
+                         amount_in_words, company_id, self.current_editing_product_id))
+                except sqlite3.OperationalError:
+                    # If we can't add the column, use the old schema without total_units
+                    self.cursor.execute('''
+                        UPDATE products 
+                        SET name=?, dom=?, expiry=?, batch_no=?, mrp=?, discount=?, 
+                            hsn_code=?, units=?, rate=?, taxable_amount=?, igst=?, 
+                            cgst=?, sgst=?, total_amount=?, amount_in_words=?, 
+                            company_id=?
+                        WHERE id=?
+                    ''', (name, dom, expiry, batch_no, mrp, discount, hsn_code, units,
+                         rate, taxable_amount, igst, cgst, sgst, total_amount, 
+                         amount_in_words, company_id, self.current_editing_product_id))
             
             self.conn.commit()
             messagebox.showinfo("Success", "Product updated successfully.")
@@ -1002,6 +1166,21 @@ class BillingApp:
         
         self.units_spinbox.delete(0, tk.END)
         self.units_spinbox.insert(0, product[8])  # units
+        
+        # Get total units - might be at different index depending on the column position
+        total_units_idx = None
+        self.cursor.execute("PRAGMA table_info(products)")
+        columns = [column[1] for column in self.cursor.fetchall()]
+        if 'total_units' in columns:
+            total_units_idx = columns.index('total_units')
+            # Ensure we have enough columns in the product tuple
+            if total_units_idx < len(product):
+                self.total_units_spinbox.delete(0, tk.END)
+                self.total_units_spinbox.insert(0, product[total_units_idx])
+            else:
+                # Default to current units if total_units not available
+                self.total_units_spinbox.delete(0, tk.END)
+                self.total_units_spinbox.insert(0, product[8])  # Use units as default
         
         self.rate_spinbox.delete(0, tk.END)
         self.rate_spinbox.insert(0, f"{product[9]:.2f}")  # rate
