@@ -997,6 +997,9 @@ class BillingApp:
         help_menu.add_separator()
         help_menu.add_command(label="About", command=self.show_about)
         menubar.add_cascade(label="Help", menu=help_menu)
+        
+        # Set the menu for the root window
+        self.root.config(menu=menubar)
 
     def show_quick_start_guide(self):
         help_text = """
