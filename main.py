@@ -992,9 +992,72 @@ class BillingApp:
         
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
-        help_menu.add_command(label="About", command=lambda: messagebox.showinfo("About", "Billing & Inventory Management System\nVersion 1.0"))
-        help_menu.add_command(label="Help", command=lambda: messagebox.showinfo("Help", "Help section coming soon!"))
+        help_menu.add_command(label="Quick Start Guide", command=self.show_quick_start_guide)
+        help_menu.add_command(label="Keyboard Shortcuts", command=self.show_keyboard_shortcuts)
+        help_menu.add_separator()
+        help_menu.add_command(label="About", command=self.show_about)
         menubar.add_cascade(label="Help", menu=help_menu)
+
+    def show_quick_start_guide(self):
+        help_text = """
+Quick Start Guide:
+
+1. Billing
+   • Select a company from the dropdown
+   • Choose products to add to the bill
+   • Set quantities for each item
+   • Click 'Add Item' to include in bill
+   • Use 'Finalize Bill' when done
+   • Print or save the bill as needed
+
+2. Inventory Management
+   • Use the Inventory tab to manage products
+   • Add new products with the form
+   • Right-click items to edit or delete
+   • Watch for low stock alerts (in red)
+
+3. Reports
+   • Select date range
+   • Generate reports of sales
+   • Export or print reports as needed
+
+Need more help? Check the keyboard shortcuts!
+"""
+        messagebox.showinfo("Quick Start Guide", help_text)
+
+    def show_keyboard_shortcuts(self):
+        shortcuts_text = """
+Keyboard Shortcuts:
+
+• Ctrl + B: Switch to Billing tab
+• Ctrl + I: Switch to Inventory tab
+• Ctrl + R: Switch to Reports tab
+• Ctrl + P: Print current bill
+• Ctrl + F: Finalize bill
+• Ctrl + N: Clear current bill
+• F5: Refresh product list
+• Esc: Clear form fields
+"""
+        messagebox.showinfo("Keyboard Shortcuts", shortcuts_text)
+
+    def show_about(self):
+        about_text = """
+Billing & Inventory Management System
+Version 1.0
+
+A comprehensive billing and inventory management 
+solution for small to medium businesses.
+
+Features:
+• Product and inventory management
+• Bill generation and printing
+• Sales reporting
+• Low stock alerts
+• Multi-company support
+
+© 2024 All Rights Reserved
+"""
+        messagebox.showinfo("About", about_text)
         
         # Set the menu for the root window
         self.root.config(menu=menubar)
