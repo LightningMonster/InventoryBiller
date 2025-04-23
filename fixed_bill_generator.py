@@ -1,3 +1,8 @@
+"""
+Bill Generator Module
+
+This module handles the generation of PDF bills/invoices using ReportLab.
+"""
 import os
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
@@ -6,7 +11,6 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
-# Removing any potential circular import
 
 def generate_bill_pdf(bill_data):
     """
