@@ -58,6 +58,31 @@ If you encounter issues:
 
 ## Notes
 
-- The executable will include the SQLite database file (`storage.db`)
-- The application will create a `bills` folder for storing generated PDFs if it doesn't exist
+- All application data is stored in the user's home directory under a folder named "BillingApp"
+- The database file (`storage.db`) will be copied to this folder from the executable directory on first run
+- Bills and other generated files are saved in the "BillingApp/bills" directory
+- This approach ensures that the application can write data even when installed in Program Files
 - All dependencies are bundled into the executable, so users don't need to install Python
+
+## Data Storage Details
+
+When running as an executable, the application data is stored in:
+```
+C:\Users\<Username>\BillingApp\
+```
+
+This folder contains:
+- `storage.db` - The SQLite database with all products, companies, and bill records
+- `bills\` - Directory containing all generated bill PDFs
+
+The application automatically creates these folders if they don't exist, and copies the initial database from the executable directory on first run.
+
+## Testing Executable Database
+
+You can verify that the database is working correctly by running the test_exe_db.py script:
+
+```
+pyinstaller --onefile test_exe_db.py
+```
+
+Then run the generated executable to test if it can create and access the database in the user's home directory.

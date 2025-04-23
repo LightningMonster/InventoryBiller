@@ -37,6 +37,7 @@ a = Analysis(
 # Include additional files
 a.datas += [
     ('storage.db', './storage.db', 'DATA'),
+    ('generated-icon.png', './generated-icon.png', 'DATA'),
     # Add your app icon if you have one
     # ('logo.ico', 'path/to/logo.ico', 'DATA'),
 ]

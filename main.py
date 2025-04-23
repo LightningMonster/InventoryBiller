@@ -4,6 +4,7 @@ from tkcalendar import DateEntry
 import sqlite3
 from datetime import datetime, timedelta
 import os
+import sys
 import re
 from fixed_bill_generator import generate_bill_pdf
 from utils import convert_to_words
@@ -49,15 +50,46 @@ class BillingApp:
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
     
     def init_database(self):
-        # Get the directory of the executable
-        app_directory = os.path.dirname(os.path.abspath(__file__))
-        database_path = os.path.join(app_directory, "storage.db")
+        # Determine if running as executable or script
+        if getattr(sys, 'frozen', False):
+            # Running as executable - use user's documents folder
+            user_data_dir = os.path.join(os.path.expanduser("~"), "BillingApp")
+            os.makedirs(user_data_dir, exist_ok=True)
+            database_path = os.path.join(user_data_dir, "storage.db")
+            
+            # Also create a bills directory in the user data folder
+            bills_dir = os.path.join(user_data_dir, "bills")
+            os.makedirs(bills_dir, exist_ok=True)
+            
+            # If database doesn't exist yet, look for a packaged one to copy
+            if not os.path.exists(database_path):
+                app_directory = os.path.dirname(sys.executable)
+                packaged_db = os.path.join(app_directory, "storage.db")
+                if os.path.exists(packaged_db):
+                    try:
+                        import shutil
+                        shutil.copy2(packaged_db, database_path)
+                        print(f"Copied packaged database to {database_path}")
+                    except Exception as e:
+                        print(f"Warning: Could not copy packaged database: {e}")
+        else:
+            # Running in development mode - use local directory
+            app_directory = os.path.dirname(os.path.abspath(__file__))
+            database_path = os.path.join(app_directory, "storage.db")
         
+        # Create empty database file if it doesn't exist
         if not os.path.exists(database_path):
             open(database_path, 'w').close()
-        
+            
         self.conn = sqlite3.connect(database_path)
         self.cursor = self.conn.cursor()
+        
+        # Store the database and user data paths
+        self.database_path = database_path
+        if getattr(sys, 'frozen', False):
+            self.user_data_dir = user_data_dir
+        else:
+            self.user_data_dir = app_directory
         
         # Create tables if they don't exist
         self.cursor.execute('''
@@ -970,7 +1002,12 @@ class BillingApp:
         
     def open_bills_folder(self):
         """Open the folder containing generated bills"""
-        bills_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bills")
+        # Use the user_data_dir for bills if running as executable
+        if getattr(sys, 'frozen', False):
+            bills_dir = os.path.join(self.user_data_dir, "bills")
+        else:
+            bills_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bills")
+            
         # Create the directory if it doesn't exist
         if not os.path.exists(bills_dir):
             os.makedirs(bills_dir)
@@ -988,7 +1025,12 @@ class BillingApp:
     
     def view_last_bill(self):
         """View the most recently generated bill"""
-        bills_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bills")
+        # Use the user_data_dir for bills if running as executable
+        if getattr(sys, 'frozen', False):
+            bills_dir = os.path.join(self.user_data_dir, "bills")
+        else:
+            bills_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bills")
+            
         if not os.path.exists(bills_dir):
             messagebox.showinfo("Info", "No bills have been generated yet.")
             return
@@ -1545,7 +1587,14 @@ class BillingApp:
             
             # Open PDF file
             import os
-            os.startfile(pdf_path)
+            try:
+                if os.name == 'nt':  # For Windows
+                    os.startfile(pdf_path)
+                elif os.name == 'posix':  # For macOS and Linux
+                    import subprocess
+                    subprocess.Popen(['xdg-open', pdf_path])
+            except Exception as e:
+                messagebox.showinfo("PDF Created", f"Bill saved to: {pdf_path}\nNote: {str(e)}")
             
             self.status_bar.config(text=f"Bill printed successfully")
             
