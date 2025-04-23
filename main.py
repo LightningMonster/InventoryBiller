@@ -323,14 +323,103 @@ class BillingApp:
         form_frame = ttk.LabelFrame(top_frame, text="Product Details")
         form_frame.pack(fill=tk.X, padx=5, pady=5)
 
-        # Create a grid layout for the form
+        # Create a grid layout for the form with horizontal arrangement
         grid_frame = ttk.Frame(form_frame)
         grid_frame.pack(fill=tk.X, padx=10, pady=10)
 
-        # Company Details
+        # Row 1: Company Details
         ttk.Label(grid_frame, text="Company Name*:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-        self.company_name_combobox = ttk.Combobox(grid_frame, width=30)
+        self.company_name_combobox = ttk.Combobox(grid_frame, width=20)
         self.company_name_combobox.grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+        
+        ttk.Label(grid_frame, text="Company Address:").grid(row=0, column=2, padx=5, pady=5, sticky=tk.W)
+        self.company_address_entry = ttk.Entry(grid_frame, width=30)
+        self.company_address_entry.grid(row=0, column=3, padx=5, pady=5, sticky=tk.W)
+        
+        ttk.Label(grid_frame, text="GST Number:").grid(row=0, column=4, padx=5, pady=5, sticky=tk.W)
+        self.company_gst_entry = ttk.Entry(grid_frame, width=20)
+        self.company_gst_entry.grid(row=0, column=5, padx=5, pady=5, sticky=tk.W)
+
+        # Save Company Button in the same row
+        save_company_button = ttk.Button(grid_frame, text="Save Company", command=self.save_company)
+        save_company_button.grid(row=0, column=6, padx=5, pady=5, sticky=tk.W)
+        
+        # "Add New Company" Button
+        add_company_btn = ttk.Button(grid_frame, text="Add New Company", command=self.add_new_company)
+        add_company_btn.grid(row=0, column=7, padx=5, pady=5, sticky=tk.W)
+
+        # Separator
+        ttk.Separator(grid_frame, orient=tk.HORIZONTAL).grid(row=1, column=0, columnspan=8, sticky=tk.EW, pady=10)
+
+        # Row 2: Product Basic Details
+        ttk.Label(grid_frame, text="Product Name*:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
+        self.product_name_entry = ttk.Entry(grid_frame, width=20)
+        self.product_name_entry.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="HSN Code*:").grid(row=2, column=2, padx=5, pady=5, sticky=tk.W)
+        self.hsn_code_entry = ttk.Entry(grid_frame, width=15)
+        self.hsn_code_entry.grid(row=2, column=3, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="Batch No*:").grid(row=2, column=4, padx=5, pady=5, sticky=tk.W)
+        self.batch_no_entry = ttk.Entry(grid_frame, width=15)
+        self.batch_no_entry.grid(row=2, column=5, padx=5, pady=5, sticky=tk.W)
+
+        # Row 3: Dates
+        ttk.Label(grid_frame, text="Date of Manufacture*:").grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
+        self.dom_picker = DateEntry(grid_frame, width=15, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd')
+        self.dom_picker.grid(row=3, column=1, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="Expiry Date*:").grid(row=3, column=2, padx=5, pady=5, sticky=tk.W)
+        self.expiry_picker = DateEntry(grid_frame, width=15, background='darkblue', foreground='white', borderwidth=2, date_pattern='yyyy-mm-dd')
+        self.expiry_picker.grid(row=3, column=3, padx=5, pady=5, sticky=tk.W)
+        self.expiry_picker.set_date(datetime.now() + timedelta(days=365))
+
+        # Row 4: Units and Pricing
+        ttk.Label(grid_frame, text="Units*:").grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
+        self.units_spinbox = ttk.Spinbox(grid_frame, from_=0, to=10000, increment=1, width=10)
+        self.units_spinbox.grid(row=4, column=1, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="Total Units*:").grid(row=4, column=2, padx=5, pady=5, sticky=tk.W)
+        self.total_units_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=1, width=10)
+        self.total_units_spinbox.grid(row=4, column=3, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="MRP*:").grid(row=4, column=4, padx=5, pady=5, sticky=tk.W)
+        self.mrp_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=0.01, format="%.2f", width=10)
+        self.mrp_spinbox.grid(row=4, column=5, padx=5, pady=5, sticky=tk.W)
+
+        # Row 5: Tax and Amounts
+        ttk.Label(grid_frame, text="Rate*:").grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
+        self.rate_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=0.01, format="%.2f", width=10)
+        self.rate_spinbox.grid(row=5, column=1, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="Discount (%)*:").grid(row=5, column=2, padx=5, pady=5, sticky=tk.W)
+        self.discount_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
+        self.discount_spinbox.grid(row=5, column=3, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="Taxable Amount*:").grid(row=5, column=4, padx=5, pady=5, sticky=tk.W)
+        self.taxable_amount_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100000, increment=0.01, format="%.2f", width=10)
+        self.taxable_amount_spinbox.grid(row=5, column=5, padx=5, pady=5, sticky=tk.W)
+
+        # Row 6: GST Details
+        ttk.Label(grid_frame, text="IGST*:").grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
+        self.igst_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
+        self.igst_spinbox.grid(row=6, column=1, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="CGST*:").grid(row=6, column=2, padx=5, pady=5, sticky=tk.W)
+        self.cgst_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
+        self.cgst_spinbox.grid(row=6, column=3, padx=5, pady=5, sticky=tk.W)
+
+        ttk.Label(grid_frame, text="SGST*:").grid(row=6, column=4, padx=5, pady=5, sticky=tk.W)
+        self.sgst_spinbox = ttk.Spinbox(grid_frame, from_=0, to=100, increment=0.01, format="%.2f", width=10)
+        self.sgst_spinbox.grid(row=6, column=5, padx=5, pady=5, sticky=tk.W)
+
+        # Calculate button
+        calculate_btn = ttk.Button(grid_frame, text="Calculate Amounts", command=self.calculate_product_amounts)
+        calculate_btn.grid(row=6, column=6, columnspan=2, padx=5, pady=5, sticky=tk.W)
+
+        # Button Frame
+        btn_frame = ttk.Frame(grid_frame)
+        btn_frame.grid(row=7, column=0, columnspan=8, pady=10, sticky=tk.EW)
         self.company_name_combobox.bind("<<ComboboxSelected>>", self.company_selected)
 
         # "Add New Company" Button
