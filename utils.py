@@ -87,3 +87,53 @@ def validate_numeric_input(value, min_value=None, max_value=None):
         return True
     except ValueError:
         return False
+def generate_batch_number(product_name, arrival_date, cursor):
+    """Generate a unique batch number based on product name and arrival date"""
+    # Get first letters
+    words = product_name.upper().split()
+    if len(words) >= 2:
+        prefix = words[0][0] + words[1][0]
+    else:
+        # For single word, use first letter and next consonant
+        word = words[0].upper()
+        consonants = [c for c in word[1:] if c not in 'AEIOU']
+        prefix = word[0] + (consonants[0] if consonants else 'X')
+
+    # Check if prefix already exists for different product
+    cursor.execute("""
+        SELECT DISTINCT name 
+        FROM products 
+        WHERE batch_no LIKE ? 
+        AND name != ?
+    """, (prefix + '%', product_name))
+    
+    if cursor.fetchone():
+        # If prefix exists for different product, append a number
+        i = 1
+        while True:
+            new_prefix = prefix + str(i)
+            cursor.execute("""
+                SELECT DISTINCT name 
+                FROM products 
+                WHERE batch_no LIKE ? 
+                AND name != ?
+            """, (new_prefix + '%', product_name))
+            if not cursor.fetchone():
+                prefix = new_prefix
+                break
+            i += 1
+
+    # Get date part (MMDD)
+    date_part = arrival_date.strftime("%m%d")
+    
+    # Get count of batches for this product on this date
+    cursor.execute("""
+        SELECT COUNT(*) 
+        FROM products 
+        WHERE name = ? 
+        AND batch_no LIKE ?
+    """, (product_name, f"{prefix}{date_part}%"))
+    
+    count = cursor.fetchone()[0] + 1
+    
+    return f"{prefix}{date_part}{count}"

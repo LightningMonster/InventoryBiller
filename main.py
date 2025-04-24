@@ -482,7 +482,8 @@ class BillingApp:
 
         # Configure the treeview with scrollbars
         self.inventory_tree = ttk.Treeview(scrollable_frame, columns=(
-            "id", "name", "hsn", "company", "batch", "expiry", "units", "mrp", "rate"
+            "id", "name", "hsn", "company", "batch", "expiry", "units", "total_units", 
+            "mrp", "discount", "rate", "taxable_amount", "igst", "cgst", "sgst"
         ), show="headings", height=10, yscrollcommand=y_scrollbar.set, xscrollcommand=x_scrollbar.set)
 
         # Configure scrollbar commands
@@ -497,8 +498,31 @@ class BillingApp:
         self.inventory_tree.heading("batch", text="Batch No")
         self.inventory_tree.heading("expiry", text="Expiry Date")
         self.inventory_tree.heading("units", text="Units")
+        self.inventory_tree.heading("total_units", text="Total Units")
         self.inventory_tree.heading("mrp", text="MRP")
+        self.inventory_tree.heading("discount", text="Discount %")
         self.inventory_tree.heading("rate", text="Rate")
+        self.inventory_tree.heading("taxable_amount", text="Taxable Amount")
+        self.inventory_tree.heading("igst", text="IGST")
+        self.inventory_tree.heading("cgst", text="CGST")
+        self.inventory_tree.heading("sgst", text="SGST")
+
+        # Column widths
+        self.inventory_tree.column("id", width=50)
+        self.inventory_tree.column("name", width=150)
+        self.inventory_tree.column("hsn", width=100)
+        self.inventory_tree.column("company", width=120)
+        self.inventory_tree.column("batch", width=100)
+        self.inventory_tree.column("expiry", width=100)
+        self.inventory_tree.column("units", width=60)
+        self.inventory_tree.column("total_units", width=80)
+        self.inventory_tree.column("mrp", width=80)
+        self.inventory_tree.column("discount", width=80)
+        self.inventory_tree.column("rate", width=80)
+        self.inventory_tree.column("taxable_amount", width=100)
+        self.inventory_tree.column("igst", width=80)
+        self.inventory_tree.column("cgst", width=80)
+        self.inventory_tree.column("sgst", width=80)
 
         # Column widths
         self.inventory_tree.column("id", width=50)
@@ -727,6 +751,22 @@ class BillingApp:
             mrp = float(self.mrp_spinbox.get())
             discount_percent = float(self.discount_spinbox.get())
             units = int(self.units_spinbox.get())
+            rate = float(self.rate_spinbox.get())
+
+            # Calculate discounted amount
+            discount_amount = mrp * (discount_percent / 100)
+            discounted_price = mrp - discount_amount
+            
+            # Calculate taxable amount
+            taxable_amount = discounted_price * units
+            
+            # Calculate GST components (assuming 18% total)
+            igst = taxable_amount * 0.18
+            cgst = taxable_amount * 0.09
+            sgst = taxable_amount * 0.09
+            
+            # Total amount including tax
+            total_amount = taxable_amount + igst
 
             # Calculate rate (MRP minus discount)
             rate = mrp * (1 - discount_percent/100)
@@ -1812,3 +1852,126 @@ def main():
 
 if __name__ == "__main__":
     main()
+def get_available_units(self, product_id, quantity_needed):
+    """Get units from available batches in order"""
+    self.cursor.execute("""
+        SELECT id, batch_no, units 
+        FROM products 
+        WHERE name = (SELECT name FROM products WHERE id = ?)
+        AND units > 0 
+        ORDER BY expiry, batch_no
+    """, (product_id,))
+    
+    batches = self.cursor.fetchall()
+    units_to_take = []
+    remaining = quantity_needed
+    
+    for batch_id, batch_no, available in batches:
+        if remaining <= 0:
+            break
+        units = min(available, remaining)
+        units_to_take.append((batch_id, units))
+        remaining -= units
+    
+    if remaining > 0:
+        return None  # Not enough units available
+    
+    return units_to_take
+def import_from_excel(self):
+    """Import inventory data from Excel"""
+    from tkinter import filedialog
+    import pandas as pd
+    
+    filename = filedialog.askopenfilename(
+        title="Select Excel file",
+        filetypes=[("Excel files", "*.xlsx")]
+    )
+    
+    if not filename:
+        return
+        
+    try:
+        df = pd.read_excel(filename)
+        for _, row in df.iterrows():
+            # Generate batch number
+            batch_no = generate_batch_number(
+                row['name'], 
+                pd.to_datetime(row['dom']).date(), 
+                self.cursor
+            )
+            
+            # Add product with generated batch number
+            self.add_product_from_import(row, batch_no)
+            
+        self.conn.commit()
+        self.refresh_product_list()
+        messagebox.showinfo("Success", "Data imported successfully")
+        
+    except Exception as e:
+        messagebox.showerror("Error", f"Import failed: {str(e)}")
+
+def export_to_excel(self):
+    """Export inventory data to Excel"""
+    from tkinter import filedialog
+    import pandas as pd
+    
+    filename = filedialog.asksaveasfilename(
+        title="Save Excel file",
+        defaultextension=".xlsx",
+        filetypes=[("Excel files", "*.xlsx")]
+    )
+    
+    if not filename:
+        return
+        
+    try:
+        self.cursor.execute("""
+            SELECT p.*, c.name as company_name 
+            FROM products p
+            LEFT JOIN companies c ON p.company_id = c.id
+        """)
+        
+        columns = [description[0] for description in self.cursor.description]
+        data = self.cursor.fetchall()
+        
+        df = pd.DataFrame(data, columns=columns)
+        df.to_excel(filename, index=False)
+        messagebox.showinfo("Success", "Data exported successfully")
+        
+    except Exception as e:
+        messagebox.showerror("Error", f"Export failed: {str(e)}")
+def init_customer_database(self):
+    """Initialize customer database table"""
+    self.cursor.execute('''
+        CREATE TABLE IF NOT EXISTS customers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            mobile TEXT,
+            address TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    self.conn.commit()
+
+def load_customer_names(self):
+    """Load customer names for dropdown"""
+    self.cursor.execute("SELECT name FROM customers ORDER BY name")
+    customers = self.cursor.fetchall()
+    customer_names = [customer[0] for customer in customers]
+    self.customer_name_combobox['values'] = customer_names
+
+def customer_selected(self, event=None):
+    """Handle customer selection"""
+    customer_name = self.customer_name_combobox.get()
+    if customer_name:
+        self.cursor.execute("""
+            SELECT mobile, address 
+            FROM customers 
+            WHERE name = ?
+        """, (customer_name,))
+        result = self.cursor.fetchone()
+        if result:
+            self.customer_mobile_entry.delete(0, tk.END)
+            self.customer_mobile_entry.insert(0, result[0])
+            self.customer_address_entry.delete(0, tk.END)
+            self.customer_address_entry.insert(0, result[1])
