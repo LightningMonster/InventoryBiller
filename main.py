@@ -332,7 +332,7 @@ class BillingApp:
 
         # Configure canvas scrolling
         main_canvas.bind("<Configure>", lambda e: main_canvas.itemconfig(main_canvas.find_all()[0], width=e.width-10))
-        
+
         # Bind mouse wheel
         def _on_mousewheel(event):
             main_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -482,7 +482,7 @@ class BillingApp:
 
         # Configure the treeview with scrollbars
         self.inventory_tree = ttk.Treeview(scrollable_frame, columns=(
-            "id", "name", "hsn", "company", "batch", "expiry", "units", "total_units", 
+            "id", "name", "hsn", "company", "batch", "dom", "expiry", "units", "total_units", 
             "mrp", "discount", "rate", "taxable_amount", "igst", "cgst", "sgst"
         ), show="headings", height=10, yscrollcommand=y_scrollbar.set, xscrollcommand=x_scrollbar.set)
 
@@ -496,6 +496,7 @@ class BillingApp:
         self.inventory_tree.heading("hsn", text="HSN Code")
         self.inventory_tree.heading("company", text="Company")
         self.inventory_tree.heading("batch", text="Batch No")
+        self.inventory_tree.heading("dom", text="DOM")
         self.inventory_tree.heading("expiry", text="Expiry Date")
         self.inventory_tree.heading("units", text="Units")
         self.inventory_tree.heading("total_units", text="Total Units")
@@ -513,6 +514,7 @@ class BillingApp:
         self.inventory_tree.column("hsn", width=100)
         self.inventory_tree.column("company", width=120)
         self.inventory_tree.column("batch", width=100)
+        self.inventory_tree.column("dom", width=100)
         self.inventory_tree.column("expiry", width=100)
         self.inventory_tree.column("units", width=60)
         self.inventory_tree.column("total_units", width=80)
@@ -523,20 +525,6 @@ class BillingApp:
         self.inventory_tree.column("igst", width=80)
         self.inventory_tree.column("cgst", width=80)
         self.inventory_tree.column("sgst", width=80)
-
-        # Column widths
-        self.inventory_tree.column("id", width=50)
-        self.inventory_tree.column("name", width=150)
-        self.inventory_tree.column("hsn", width=100)
-        self.inventory_tree.column("company", width=120)
-        self.inventory_tree.column("batch", width=100)
-        self.inventory_tree.column("expiry", width=100)
-        self.inventory_tree.column("units", width=60)
-        self.inventory_tree.column("mrp", width=80)
-        self.inventory_tree.column("rate", width=80)
-
-        # Pack the treeview and scrollbars
-        self.inventory_tree.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
 
         # Right-click menu for tree
@@ -756,15 +744,15 @@ class BillingApp:
             # Calculate discounted amount
             discount_amount = mrp * (discount_percent / 100)
             discounted_price = mrp - discount_amount
-            
+
             # Calculate taxable amount
             taxable_amount = discounted_price * units
-            
+
             # Calculate GST components (assuming 18% total)
             igst = taxable_amount * 0.18
             cgst = taxable_amount * 0.09
             sgst = taxable_amount * 0.09
-            
+
             # Total amount including tax
             total_amount = taxable_amount + igst
 
@@ -935,7 +923,7 @@ class BillingApp:
         if 'total_units' in columns:
             # Get products with company names and total_units
             self.cursor.execute('''
-                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate, p.total_units
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.dom, p.expiry, p.units, p.mrp, p.discount, p.rate, p.taxable_amount, p.igst, p.cgst, p.sgst, p.total_units
                 FROM products p
                 LEFT JOIN companies c ON p.company_id = c.id
                 ORDER BY p.name
@@ -943,7 +931,7 @@ class BillingApp:
         else:
             # Get products without total_units (for backward compatibility)
             self.cursor.execute('''
-                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.dom, p.expiry, p.units, p.mrp, p.discount, p.rate, p.taxable_amount, p.igst, p.cgst, p.sgst
                 FROM products p
                 LEFT JOIN companies c ON p.company_id = c.id
                 ORDER BY p.name
@@ -953,11 +941,11 @@ class BillingApp:
 
         for product in products:
             # Check if it's a low stock item (less than 25% of total)
-            units = product[6]  # Current units
+            units = product[7]  # Current units
 
             # If total_units column exists, use it, otherwise use current units
-            if 'total_units' in columns and len(product) > 9:
-                total_units = product[9] if product[9] else units  # Total units or current if total not set
+            if 'total_units' in columns and len(product) > 15:
+                total_units = product[15] if product[15] else units  # Total units or current if total not set
             else:
                 total_units = units  # Just use current units as total if column doesn't exist
 
@@ -971,7 +959,7 @@ class BillingApp:
             tag = 'low_stock' if is_low_stock else ''
 
             # If we have total_units, exclude it from display values
-            if 'total_units' in columns and len(product) > 9:
+            if 'total_units' in columns and len(product) > 15:
                 display_values = product[:-1]
             else:
                 display_values = product
@@ -1003,7 +991,7 @@ class BillingApp:
         if 'total_units' in columns:
             # Search by name, HSN code, or batch number with total_units
             self.cursor.execute('''
-                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate, p.total_units
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.dom, p.expiry, p.units, p.mrp, p.discount, p.rate, p.taxable_amount, p.igst, p.cgst, p.sgst, p.total_units
                 FROM products p
                 LEFT JOIN companies c ON p.company_id = c.id
                 WHERE p.name LIKE ? OR p.hsn_code LIKE ? OR p.batch_no LIKE ?
@@ -1012,7 +1000,7 @@ class BillingApp:
         else:
             # Search without total_units (for backward compatibility)
             self.cursor.execute('''
-                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.expiry, p.units, p.mrp, p.rate
+                SELECT p.id, p.name, p.hsn_code, c.name, p.batch_no, p.dom, p.expiry, p.units, p.mrp, p.discount, p.rate, p.taxable_amount, p.igst, p.cgst, p.sgst
                 FROM products p
                 LEFT JOIN companies c ON p.company_id = c.id
                 WHERE p.name LIKE ? OR p.hsn_code LIKE ? OR p.batch_no LIKE ?
@@ -1023,11 +1011,11 @@ class BillingApp:
 
         for product in products:
             # Check if it's a low stock item (less than 25% of total)
-            units = product[6]  # Current units
+            units = product[7]  # Current units
 
             # If total_units column exists, use it, otherwise use current units
-            if 'total_units' in columns and len(product) > 9:
-                total_units = product[9] if product[9] else units  # Total units or current if total not set
+            if 'total_units' in columns and len(product) > 15:
+                total_units = product[15] if product[15] else units  # Total units or current if total not set
             else:
                 total_units = units  # Just use current units as total if column doesn't exist
 
@@ -1041,7 +1029,7 @@ class BillingApp:
             tag = 'low_stock' if is_low_stock else ''
 
             # If we have total_units, exclude it from display values
-            if 'total_units' in columns and len(product) > 9:
+            if 'total_units' in columns and len(product) > 15:
                 display_values = product[:-1]
             else:
                 display_values = product
@@ -1204,8 +1192,7 @@ Developer: Yash Dhadve
             messagebox.showinfo("Info", "No bills have been generated yet.")
             return
 
-        # Sort by modification time (newest first)
-        bill_files.sort(key=lambda x: os.path.getmtime(os.path.join(bills_dir, x)), reverse=True)
+        # Sort by modification time (newest first)        bill_files.sort(key=lambda x: os.path.getmtime(os.path.join(bills_dir, x)), reverse=True)
 
         # Open the most recent bill
         latest_bill = os.path.join(bills_dir, bill_files[0])
@@ -1861,35 +1848,35 @@ def get_available_units(self, product_id, quantity_needed):
         AND units > 0 
         ORDER BY expiry, batch_no
     """, (product_id,))
-    
+
     batches = self.cursor.fetchall()
     units_to_take = []
     remaining = quantity_needed
-    
+
     for batch_id, batch_no, available in batches:
         if remaining <= 0:
             break
         units = min(available, remaining)
         units_to_take.append((batch_id, units))
         remaining -= units
-    
+
     if remaining > 0:
         return None  # Not enough units available
-    
+
     return units_to_take
 def import_from_excel(self):
     """Import inventory data from Excel"""
     from tkinter import filedialog
     import pandas as pd
-    
+
     filename = filedialog.askopenfilename(
         title="Select Excel file",
         filetypes=[("Excel files", "*.xlsx")]
     )
-    
+
     if not filename:
         return
-        
+
     try:
         df = pd.read_excel(filename)
         for _, row in df.iterrows():
@@ -1899,14 +1886,14 @@ def import_from_excel(self):
                 pd.to_datetime(row['dom']).date(), 
                 self.cursor
             )
-            
+
             # Add product with generated batch number
             self.add_product_from_import(row, batch_no)
-            
+
         self.conn.commit()
         self.refresh_product_list()
         messagebox.showinfo("Success", "Data imported successfully")
-        
+
     except Exception as e:
         messagebox.showerror("Error", f"Import failed: {str(e)}")
 
@@ -1914,30 +1901,30 @@ def export_to_excel(self):
     """Export inventory data to Excel"""
     from tkinter import filedialog
     import pandas as pd
-    
+
     filename = filedialog.asksaveasfilename(
         title="Save Excel file",
         defaultextension=".xlsx",
         filetypes=[("Excel files", "*.xlsx")]
     )
-    
+
     if not filename:
         return
-        
+
     try:
         self.cursor.execute("""
             SELECT p.*, c.name as company_name 
             FROM products p
             LEFT JOIN companies c ON p.company_id = c.id
         """)
-        
+
         columns = [description[0] for description in self.cursor.description]
         data = self.cursor.fetchall()
-        
+
         df = pd.DataFrame(data, columns=columns)
         df.to_excel(filename, index=False)
         messagebox.showinfo("Success", "Data exported successfully")
-        
+
     except Exception as e:
         messagebox.showerror("Error", f"Export failed: {str(e)}")
 def init_customer_database(self):
