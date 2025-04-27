@@ -31,8 +31,8 @@ def generate_bill_pdf(bill_data):
     Returns:
         str: Path to the generated PDF file
     """
-    # Create bills directory if it doesn't exist
-    bills_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bills")
+    # Use the BILLS_DIR from config
+    bills_dir = BILLS_DIR
     if not os.path.exists(bills_dir):
         os.makedirs(bills_dir)
     

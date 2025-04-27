@@ -126,25 +126,10 @@ def migrate_database():
         logger.error(f"Database migration error: {str(e)}")
         return False
 
-# Define paths
-BASE_DIR = get_base_path()
-DATABASE_DIR = os.path.join(BASE_DIR, 'database')
-BILLS_DIR = os.path.join(BASE_DIR, 'bills')
-LOGS_DIR = os.path.join(BASE_DIR, 'logs')
-
-# Create directories if they don't exist
-for directory in [DATABASE_DIR, BILLS_DIR, LOGS_DIR]:
-    os.makedirs(directory, exist_ok=True)
-
-# Database path
-DATABASE_PATH = os.path.join(DATABASE_DIR, 'storage.db')
-
-# Initialize database if it doesn't exist
+# Initialize and migrate database
 if not os.path.exists(DATABASE_PATH):
     if not initialize_database():
         logger.error("Failed to initialize database")
         raise RuntimeError("Database initialization failed")
-
-# Migrate database if it exists
-if os.path.exists(DATABASE_PATH):
+else:
     migrate_database()

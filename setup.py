@@ -1,7 +1,20 @@
 
 import os
 import shutil
+import subprocess
 from pathlib import Path
+
+def install_requirements():
+    try:
+        subprocess.run(["pip", "install", "-r", "requirements.txt"], check=True)
+        return True
+    except subprocess.CalledProcessError:
+        print("Failed to install requirements")
+        return False
+
+# Install dependencies first
+if not install_requirements():
+    exit(1)
 
 # Create required directories
 build_dir = Path('build/BillingSystem')
