@@ -2,3 +2,15 @@ modules = ["web", "python-3.12"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["freetype", "glibcLocales"]
+
+[workflows]
+
+[[workflows.workflow]]
+name = "Build Installer"
+author = 41820385
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python setup.py"
