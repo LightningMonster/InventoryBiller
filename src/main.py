@@ -1553,6 +1553,9 @@ class BillingApp:
     
     def save_company(self):
         """Saves or updates company information"""
+        name = self.company_name_combobox.get().strip()
+        address = self.company_address_entry.get().strip()
+        gst = self.company_gst_entry.get().strip().upper()
         
         if not name or not address or not gst:
             messagebox.showerror("Error", "All fields are required!")
