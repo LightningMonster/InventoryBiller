@@ -11,15 +11,21 @@ logger = logging.getLogger(__name__)
 def get_base_path():
     """Get base path for application data"""
     try:
-        if getattr(sys, 'frozen', False):
-            # If running as exe
-            base_dir = os.path.dirname(os.path.abspath(sys.executable))
-        else:
-            # If running as script
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # Create required directories
+        os.makedirs(os.path.join(base_dir, 'database'), exist_ok=True)
+        os.makedirs(os.path.join(base_dir, 'bills'), exist_ok=True)
+        os.makedirs(os.path.join(base_dir, 'logs'), exist_ok=True)
+        
         return base_dir
     except Exception:
         return os.getcwd()
+
+# Define paths
+DATABASE_PATH = os.path.join(get_base_path(), 'database', 'billing.db')
+BILLS_DIR = os.path.join(get_base_path(), 'bills')
+LOGS_DIR = os.path.join(get_base_path(), 'logs')
 
 def initialize_database():
     """Initialize database with required tables"""
