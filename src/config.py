@@ -68,6 +68,12 @@ def initialize_database():
                 hsn_code TEXT,
                 units INTEGER NOT NULL,
                 rate REAL NOT NULL,
+                taxable_amount REAL NOT NULL,
+                igst REAL DEFAULT 0,
+                cgst REAL DEFAULT 0,
+                sgst REAL DEFAULT 0,
+                total_amount REAL NOT NULL,
+                amount_in_words TEXT,
                 company_id INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (company_id) REFERENCES companies (id)
